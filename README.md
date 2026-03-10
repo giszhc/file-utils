@@ -8,8 +8,9 @@
 - **文件下载**：支持从 URL、Blob、Base64 等多种方式下载文件
 - **文件转换**：支持文件格式转换（如 Base64 转 Blob、File 转 Base64 等）
 - **文件压缩**：支持图片压缩处理
-- **文件生成**：支持生成 TXT、CSV、JSON 格式文件
+- **文件生成**：支持生成 TXT、CSV、JSON 格式文件，可选择返回 File 对象而不下载
 - **文件验证**：提供完整的文件验证和类型判断功能
+- **剪贴板操作**：支持一键复制文本到剪贴板，并支持成功/失败回调
 - **自动清理**：自动管理临时创建的 Blob URL，防止内存泄漏
 - **TypeScript**：完善的类型定义支持
 
@@ -167,6 +168,12 @@ generateTxtFile('Hello World!', 'hello.txt');
 // 生成多行文本
 const lines = ['第一行', '第二行', '第三行'].join('\n');
 generateTxtFile(lines, 'multiline.txt');
+
+// 生成文件但不下载，返回 File 对象
+const file = generateTxtFile('Hello World!', 'hello.txt', { download: false });
+console.log(file.name); // "hello.txt"
+console.log(file.type); // "text/plain;charset=utf-8"
+console.log(file.size); // 文件大小（字节）
 ```
 
 ### 9. 生成 CSV 文件
@@ -192,6 +199,12 @@ generateCsvFile(data, 'data.csv');
 
 // 自定义分隔符（制表符 TSV）
 generateCsvFile(data, 'data.tsv', { separator: '\t' });
+
+// 生成文件但不下载，返回 File 对象
+const csvFile = generateCsvFile(users, 'users.csv', { download: false });
+console.log(csvFile.name); // "users.csv"
+console.log(csvFile.type); // "text/csv;charset=utf-8"
+console.log(csvFile.size); // 文件大小（字节）
 ```
 
 ### 10. 生成 JSON 文件
@@ -215,6 +228,12 @@ generateJsonFile(data, 'data.min.json', { pretty: false });
 
 // 自定义缩进
 generateJsonFile(data, 'data.json', { spaces: 4 });
+
+// 生成文件但不下载，返回 File 对象
+const file = generateJsonFile(data, 'user.json', { download: false });
+console.log(file.name); // "user.json"
+console.log(file.type); // "application/json;charset=utf-8"
+console.log(file.size); // 文件大小（字节）
 ```
 
 ### 11. 获取文件扩展名和文件名
@@ -334,6 +353,31 @@ import { readJsonFile } from '@giszhc/file-utils';
 const data = await readJsonFile<{ name: string; age: number }>(file);
 console.log(data.name);
 console.log(data.age);
+```
+
+### 19. 一键复制文本到剪贴板
+
+```ts
+import { copyToClipboard } from '@giszhc/file-utils';
+
+// 基本使用
+await copyToClipboard('Hello World!');
+
+// 带回调的使用
+await copyToClipboard('这是一段文本', {
+  onSuccess: () => console.log('复制成功！'),
+  onError: (error) => console.error('复制失败:', error)
+});
+```
+
+### 20. 从剪贴板读取文本
+
+```ts
+import { pasteFromClipboard } from '@giszhc/file-utils';
+
+// 读取剪贴板内容
+const text = await pasteFromClipboard();
+console.log('剪贴板内容:', text);
 ```
 
 ------

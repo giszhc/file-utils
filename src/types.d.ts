@@ -63,7 +63,7 @@ export interface DownloadOptions {
    * @example
    * // 设置授权请求头
    * fetchOptions: {
-   *   headers: {
+   *  headers: {
    *     'Authorization': 'Bearer token123'
    *   }
    * }
@@ -71,11 +71,30 @@ export interface DownloadOptions {
    * @example
    * // 设置 POST 请求和请求体
    * fetchOptions: {
-   *   method: 'POST',
+   *  method: 'POST',
    *   body: JSON.stringify({ id: 123 })
    * }
    */
   fetchOptions?: RequestInit;
+}
+
+/**
+ * 文件生成选项配置
+ * 用于控制文件生成后的行为
+ */
+export interface GenerateOptions {
+  /**
+   * 是否直接下载生成的文件
+   * 默认值：true（直接下载）
+   * 如果设置为 false，将返回 File 对象而不触发下载
+   */
+  download?: boolean;
+  
+  /**
+   * 字符编码
+   * 默认值：'utf-8'
+   */
+  encoding?: string;
 }
 
 /**
@@ -146,4 +165,21 @@ export interface IFileValidationOptions {
    * 最大高度（像素，仅对图片有效）
    */
   maxHeight?: number;
+}
+
+/**
+ * 复制选项配置
+ */
+export interface CopyOptions {
+  /**
+  * 复制成功时的回调函数
+  * @param text - 被复制的文本
+  */
+  onSuccess?: (text: string) => void;
+  
+  /**
+  * 复制失败时的回调函数
+  * @param error - 错误信息
+  */
+  onError?: (error: Error) => void;
 }

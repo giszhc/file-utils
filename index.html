@@ -192,9 +192,12 @@
         <div class="section">
             <h2>📝 文件生成</h2>
             <div class="test-group">
-                <button onclick="testGenerateTxt()">生成 TXT</button>
-                <button onclick="testGenerateCsv()">生成 CSV</button>
-                <button onclick="testGenerateJson()">生成 JSON</button>
+                <button onclick="testGenerateTxt()">生成 TXT（下载）</button>
+                <button onclick="testGenerateTxtNoDownload()">生成 TXT（返回 File）</button>
+                <button onclick="testGenerateCsv()">生成 CSV（下载）</button>
+                <button onclick="testGenerateCsvNoDownload()">生成 CSV（返回 File）</button>
+                <button onclick="testGenerateJson()">生成 JSON（下载）</button>
+                <button onclick="testGenerateJsonNoDownload()">生成 JSON（返回 File）</button>
             </div>
             <div class="result" id="generateResult"></div>
         </div>
@@ -218,6 +221,17 @@
                 <button onclick="testDownloadBase64()">下载 Base64</button>
             </div>
             <div class="result" id="downloadResult"></div>
+        </div>
+        
+        <!-- 剪贴板操作 -->
+        <div class="section">
+            <h2>📋 剪贴板操作</h2>
+            <div class="test-group">
+                <button onclick="testCopyText()">一键复制文本</button>
+                <button onclick="testCopyWithCallback()">复制（带回调）</button>
+                <button onclick="testPasteFromClipboard()">从剪贴板读取</button>
+            </div>
+            <div class="result" id="clipboardResult"></div>
         </div>
     </div>
     
@@ -243,7 +257,9 @@
             getFileExtension,
             getFileNameWithoutExtension,
             getFileInfo,
-            formatFileSize
+            formatFileSize,
+            copyToClipboard,
+            pasteFromClipboard
         } from './src/index.ts';
         
         let currentFile = null;
@@ -454,9 +470,20 @@
         // ========== 文件生成测试 ==========
         window.testGenerateTxt = () => {
             generateTxtFile('这是一个测试文本文件\n第二行内容\n第三行内容', 'test.txt');
-            document.getElementById('generateResult').innerHTML = `
+           document.getElementById('generateResult').innerHTML = `
                 <p class="success">✓ TXT 文件已生成并触发下载</p>
             `;
+        };
+        
+        window.testGenerateTxtNoDownload = () => {
+            const file = generateTxtFile('这是一个测试文本文件\n第二行内容\n第三行内容', 'test.txt', { download: false });
+            if (file) {
+               document.getElementById('generateResult').innerHTML = `
+                    <h4>TXT 文件生成（返回 File 对象）：</h4>
+                    <pre>文件名：${file.name}\n类型：${file.type}\n大小：${file.size} 字节</pre>
+                    <p class="success">✓ TXT 文件已生成，未触发下载，返回了 File 对象</p>
+                `;
+            }
         };
         
         window.testGenerateCsv = () => {
@@ -466,10 +493,27 @@
                 { name: '王五', age: 28, city: '广州' }
             ];
             generateCsvFile(data, 'users.csv');
-            document.getElementById('generateResult').innerHTML = `
+           document.getElementById('generateResult').innerHTML = `
                 <p class="success">✓ CSV 文件已生成并触发下载</p>
                 <pre>${JSON.stringify(data, null, 2)}</pre>
             `;
+        };
+        
+        window.testGenerateCsvNoDownload = () => {
+            const data = [
+                { name: '张三', age: 25, city: '北京' },
+                { name: '李四', age: 30, city: '上海' },
+                { name: '王五', age: 28, city: '广州' }
+            ];
+            const file = generateCsvFile(data, 'users.csv', { download: false });
+            if (file) {
+               document.getElementById('generateResult').innerHTML = `
+                    <h4>CSV 文件生成（返回 File 对象）：</h4>
+                    <pre>文件名：${file.name}\n类型：${file.type}\n大小：${file.size} 字节</pre>
+                    <p class="success">✓ CSV 文件已生成，未触发下载，返回了 File 对象</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            }
         };
         
         window.testGenerateJson = () => {
@@ -483,10 +527,31 @@
                 }
             };
             generateJsonFile(data, 'user.json');
-            document.getElementById('generateResult').innerHTML = `
+           document.getElementById('generateResult').innerHTML = `
                 <p class="success">✓ JSON 文件已生成并触发下载</p>
                 <pre>${JSON.stringify(data, null, 2)}</pre>
             `;
+        };
+        
+        window.testGenerateJsonNoDownload = () => {
+            const data = {
+                name: '测试用户',
+                age: 25,
+                hobbies: ['阅读', '游泳', '编程'],
+                address: {
+                    city: '北京',
+                    district: '朝阳区'
+                }
+            };
+            const file = generateJsonFile(data, 'user.json', { download: false });
+            if (file) {
+               document.getElementById('generateResult').innerHTML = `
+                    <h4>JSON 文件生成（返回 File 对象）：</h4>
+                    <pre>文件名：${file.name}\n类型：${file.type}\n大小：${file.size} 字节</pre>
+                    <p class="success">✓ JSON 文件已生成，未触发下载，返回了 File 对象</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            }
         };
         
         // ========== 文件转换测试 ==========
@@ -539,11 +604,60 @@
         };
         
         window.testDownloadBase64 = () => {
-            const base64 = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0icmVkIiAvPjwvc3ZnPg==';
-            downloadBase64(base64, 'test.svg');
-            document.getElementById('downloadResult').innerHTML = `
+           const base64 = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0icmVkIiAvPjwvc3ZnPg==';
+           downloadBase64(base64, 'test.svg');
+          document.getElementById('downloadResult').innerHTML = `
                 <p class="success">✓ Base64 文件已下载</p>
             `;
+        };
+        
+        // ========== 剪贴板操作测试 ==========
+        window.testCopyText = async () => {
+            try {
+                await copyToClipboard('这是一段测试文本，点击复制按钮就可以复制到剪贴板！');
+              document.getElementById('clipboardResult').innerHTML = `
+                    <p class="success">✓ 复制成功！请尝试粘贴到其他地方</p>
+                `;
+            } catch (error) {
+              document.getElementById('clipboardResult').innerHTML = `
+                    <p class="error">✗ 复制失败：${error.message}</p>
+                `;
+            }
+        };
+        
+        window.testCopyWithCallback = async () => {
+           const text = '这是带回调的复制测试\n支持多行文本\n复制成功后会显示提示信息';
+            
+            await copyToClipboard(text, {
+                onSuccess: (copiedText) => {
+                  document.getElementById('clipboardResult').innerHTML = `
+                        <h4>复制成功！</h4>
+                        <pre>复制的内容：${copiedText}</pre>
+                        <p class="success">✓ 已成功复制到剪贴板</p>
+                    `;
+                },
+                onError: (error) => {
+                  document.getElementById('clipboardResult').innerHTML = `
+                        <p class="error">✗ 复制失败：${error.message}</p>
+                    `;
+                }
+            });
+        };
+        
+        window.testPasteFromClipboard = async () => {
+            try {
+               const text = await pasteFromClipboard();
+              document.getElementById('clipboardResult').innerHTML = `
+                    <h4>从剪贴板读取成功！</h4>
+                    <pre>${text}</pre>
+                    <p class="success">✓ 共 ${text.length} 个字符</p>
+                `;
+            } catch (error) {
+              document.getElementById('clipboardResult').innerHTML = `
+                    <p class="error">✗ 读取失败：${error.message}</p>
+                    <p>请确保允许浏览器访问剪贴板权限</p>
+                `;
+            }
         };
     </script>
 </body>

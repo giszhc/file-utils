@@ -3,13 +3,18 @@
  */
 
 import { downloadBlob } from './download';
+import type { GenerateOptions } from './types';
 
 /**
  * 生成并下载 TXT 文件
  *
  * @param content - 文本内容
  * @param filename - 文件名（包含 .txt 扩展名）
- * @param encoding - 字符编码，默认 'utf-8'
+ * @param options - 生成选项配置（可选）
+ *                - download: 是否直接下载，默认 true
+ *                - encoding: 字符编码，默认 'utf-8'
+ *
+ * @returns 如果 options.download 为 false，返回 File 对象；否则返回 void
  *
  * @example
  * // 生成简单的文本文件
@@ -19,14 +24,29 @@ import { downloadBlob } from './download';
  * // 生成多行文本
  * const lines = ['第一行', '第二行', '第三行'].join('\n');
  * generateTxtFile(lines, 'multiline.txt');
+ *
+ * @example
+ * // 生成文件但不下载，返回 File 对象
+ * const file = generateTxtFile('Hello World!', 'hello.txt', { download: false });
  */
 export function generateTxtFile(
     content: string,
     filename: string,
-    encoding: string = 'utf-8'
-): void {
+    options?: GenerateOptions
+): File | void {
+    const {
+        download = true,
+        encoding = 'utf-8'
+    } = options || {};
+    
     const blob = new Blob([content], { type: `text/plain;charset=${encoding}` });
-    downloadBlob(blob, filename);
+    
+    if (download) {
+        downloadBlob(blob, filename);
+        return;
+    }
+    
+    return new File([blob], filename, { type: `text/plain;charset=${encoding}` });
 }
 
 /**
@@ -59,7 +79,10 @@ function escapeCsvValue(value: any, separator: string): string {
  * @param options - CSV 选项配置（可选）
  *                - separator: 字段分隔符，默认 ','
  *                - includeHeader: 是否包含表头，默认 true
+ *                - download: 是否直接下载，默认 true
  *                - encoding: 字符编码，默认 'utf-8'
+ *
+ * @returns 如果 options.download 为 false，返回 File 对象；否则返回 void
  *
  * @example
  * // 使用对象数组生成 CSV
@@ -82,6 +105,10 @@ function escapeCsvValue(value: any, separator: string): string {
  * @example
  * // 自定义分隔符（制表符）
  * generateCsvFile(data, 'data.tsv', { separator: '\t' });
+ *
+ * @example
+ * // 生成文件但不下载，返回 File 对象
+ * const file = generateCsvFile(users, 'users.csv', { download: false });
  */
 export function generateCsvFile(
     data: Record<string, any>[] | any[][],
@@ -89,12 +116,14 @@ export function generateCsvFile(
     options: {
         separator?: string;
         includeHeader?: boolean;
+        download?: boolean;
         encoding?: string;
     } = {}
-): void {
+): File | void {
     const {
         separator = ',',
-        includeHeader = true,
+        includeHeader= true,
+        download = true,
         encoding = 'utf-8'
     } = options;
 
@@ -167,7 +196,12 @@ export function generateCsvFile(
         type: `text/csv;charset=${encoding}` 
     });
     
-    downloadBlob(blob, filename);
+    if (download) {
+        downloadBlob(blob, filename);
+        return;
+    }
+    
+    return new File([blob], filename, { type: `text/csv;charset=${encoding}` });
 }
 
 /**
@@ -178,7 +212,10 @@ export function generateCsvFile(
  * @param options - JSON 选项配置（可选）
  *                - pretty: 是否格式化输出，默认 true
  *                - spaces: 缩进空格数，默认 2
+ *                - download: 是否直接下载，默认 true
  *                - encoding: 字符编码，默认 'utf-8'
+ *
+ * @returns 如果 options.download 为 false，返回 File 对象；否则返回 void
  *
  * @example
  * // 生成简单的 JSON 文件
@@ -200,6 +237,10 @@ export function generateCsvFile(
  * @example
  * // 自定义缩进
  * generateJsonFile(data, 'data.json', { spaces: 4 });
+ *
+ * @example
+ * // 生成文件但不下载，返回 File 对象
+ * const file = generateJsonFile(data, 'user.json', { download: false });
  */
 export function generateJsonFile(
     data: any,
@@ -207,12 +248,14 @@ export function generateJsonFile(
     options: {
         pretty?: boolean;
         spaces?: number;
+        download?: boolean;
         encoding?: string;
     } = {}
-): void {
+): File | void {
     const {
         pretty = true,
         spaces = 2,
+        download = true,
         encoding = 'utf-8'
     } = options;
 
@@ -227,7 +270,12 @@ export function generateJsonFile(
             type: `application/json;charset=${encoding}` 
         });
         
-        downloadBlob(blob, filename);
+        if (download) {
+            downloadBlob(blob, filename);
+            return;
+        }
+        
+        return new File([blob], filename, { type: `application/json;charset=${encoding}` });
     } catch (error) {
         console.error('JSON 序列化失败:', error);
         throw new Error('数据无法序列化为 JSON');
