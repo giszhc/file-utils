@@ -441,6 +441,16 @@
                 <div class="result" id="downloadResult"></div>
             </div>
             
+            <!-- 文件压缩 -->
+            <div class="section">
+                <h2><span class="section-icon">📦</span> 文件压缩</h2>
+                <div class="button-group">
+                    <button onclick="testFileListToZip()">文件列表转 ZIP</button>
+                    <button onclick="testDownloadFileListAsZip()">下载 ZIP 压缩包</button>
+                </div>
+                <div class="result" id="compressResult"></div>
+            </div>
+            
             <!-- 剪贴板操作 -->
             <div class="section">
                 <h2><span class="section-icon">📋</span> 剪贴板</h2>
@@ -450,6 +460,25 @@
                     <button onclick="testPasteFromClipboard()">从剪贴板读取</button>
                 </div>
                 <div class="result" id="clipboardResult"></div>
+            </div>
+            
+            <!-- 辅助工具 -->
+            <div class="section">
+                <h2><span class="section-icon">🛠️</span> 辅助工具</h2>
+                <div class="button-group">
+                    <button onclick="testDeepClone()">深拷贝</button>
+                    <button onclick="testNumberFixed()">数字格式化</button>
+                    <button onclick="testParseUrlParams()">解析 URL</button>
+                    <button onclick="testObjectToFormData()">对象转 FormData</button>
+                    <button onclick="testOmitKeys()">移除键</button>
+                    <button onclick="testGenerateUUID()">生成 UUID</button>
+                    <button onclick="testArraySum()">数组求和</button>
+                    <button onclick="testFormatAmount()">金额格式化</button>
+                    <button onclick="testMaskString()">星号替换</button>
+                    <button onclick="testFormatPhone()">手机号脱敏</button>
+                    <button onclick="testVerifyUtils()">正则验证</button>
+                </div>
+                <div class="result" id="helpersResult"></div>
             </div>
         </div>
     </div>
@@ -479,6 +508,25 @@
            formatFileSize,
          copyToClipboard,
          pasteFromClipboard
+       } from './src/index.ts';
+       
+       import {
+         fileListToZip,
+         downloadFileListAsZip
+       } from './src/index.ts';
+       
+       import {
+         deepClone,
+         numberFixed,
+         parseUrlParams,
+         objectToFormData,
+         omitKeys,
+         generateUUID,
+         arraySum,
+         formatAmount,
+         maskString,
+         formatPhone,
+         VerifyUtils
        } from './src/index.ts';
        
        let currentFile = null;
@@ -830,6 +878,43 @@
            `;
        };
        
+       // ========== 文件压缩测试 ==========
+       window.testFileListToZip = async () => {
+         if (!currentFile) return alert('请先选择至少一个文件');
+         const files = Array.from(document.getElementById('fileInput').files || []);
+         if (files.length === 0) return alert('请先选择文件');
+         
+         try {
+           const zipFile = await fileListToZip(files, 'test-files');
+           document.getElementById('compressResult').innerHTML = `
+                 <h4>ZIP 压缩包生成成功：</h4>
+                 <p>文件名：${zipFile.name}</p>
+                 <p>大小：${formatFileSize(zipFile.size)}</p>
+                 <p>类型：${zipFile.type}</p>
+               `;
+         } catch (error) {
+           document.getElementById('compressResult').innerHTML = `
+                 <p class="error">✗ 压缩失败：${error.message}</p>
+             `;
+         }
+       };
+       
+       window.testDownloadFileListAsZip = async () => {
+         const files = Array.from(document.getElementById('fileInput').files || []);
+         if (files.length === 0) return alert('请先选择文件');
+         
+         try {
+           await downloadFileListAsZip(files, 'download-test');
+           document.getElementById('compressResult').innerHTML = `
+                 <p class="success">✓ ZIP 压缩包已触发下载</p>
+             `;
+         } catch (error) {
+           document.getElementById('compressResult').innerHTML = `
+                 <p class="error">✗ 下载失败：${error.message}</p>
+             `;
+         }
+       };
+       
        // ========== 剪贴板操作测试 ==========
        window.testCopyText = async () => {
            try {
@@ -877,6 +962,184 @@
                    <p>请确保允许浏览器访问剪贴板权限</p>
                `;
            }
+       };
+       
+       // ========== 辅助工具测试 ==========
+       window.testDeepClone = () => {
+         const original = { 
+             a: 1, 
+             b: { c: 2 }, 
+             d: [1, 2, 3],
+             e: new Date(),
+             f: /test/g
+         };
+         const cloned = deepClone(original);
+         cloned.b.c = 999;
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>深拷贝测试：</h4>
+               <pre>原对象 b.c: ${original.b.c}\n克隆后 b.c: ${cloned.b.c}</pre>
+               <p class="success">✓ 深拷贝成功，原对象未受影响</p>
+           `;
+       };
+       
+       window.testNumberFixed = () => {
+         const num1 = numberFixed(3.1415926);
+         const num2 = numberFixed(10, 3);
+         const num3 = numberFixed(2.5678, 1);
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>数字格式化测试：</h4>
+               <p>numberFixed(3.1415926) = ${num1}</p>
+               <p>numberFixed(10, 3) = ${num2}</p>
+               <p>numberFixed(2.5678, 1) = ${num3}</p>
+           `;
+       };
+       
+       window.testParseUrlParams = () => {
+         const url = 'https://example.com?name=John&age=30&city=Beijing';
+         const params = parseUrlParams(url);
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>URL 参数解析测试：</h4>
+               <pre>${JSON.stringify(params, null, 2)}</pre>
+               <p class="success">✓ 解析成功</p>
+           `;
+       };
+       
+       window.testObjectToFormData = () => {
+         const obj = { 
+             name: 'John', 
+             age: 30,
+             profile: {
+                 email: 'john@example.com',
+                 phone: '123456'
+             }
+         };
+         const formData = objectToFormData(obj);
+         
+         let result = '<h4>对象转 FormData 测试：</h4>';
+         for (let [key, value] of formData.entries()) {
+             result += `<p>${key}: ${value}</p>`;
+         }
+         
+         document.getElementById('helpersResult').innerHTML = result;
+       };
+       
+       window.testOmitKeys = () => {
+         const obj = { a: 1, b: 2, c: 3, d: 4 };
+         const omitted = omitKeys(obj, ['b', 'd']);
+         const picked = omitKeys(obj, ['a', 'c'], true);
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>移除键测试：</h4>
+               <p>原对象：${JSON.stringify(obj)}</p>
+               <p>omitKeys(obj, ['b', 'd']): ${JSON.stringify(omitted)}</p>
+               <p>omitKeys(obj, ['a', 'c'], true): ${JSON.stringify(picked)}</p>
+           `;
+       };
+       
+       window.testGenerateUUID = () => {
+         const uuid1 = generateUUID();
+         const uuid2 = generateUUID(true);
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>UUID 生成测试：</h4>
+               <p>带横杠：${uuid1}</p>
+               <p>无横杠：${uuid2}</p>
+           `;
+       };
+       
+       window.testArraySum = () => {
+         const arr1 = [1, 2, 3, 4, 5, 6, 7, 8];
+         const arr2 = [10, 20, 30, 40, 50];
+         const sum1 = arraySum(arr1);
+         const sum2 = arraySum(arr2);
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>数组求和测试：</h4>
+               <p>arraySum([1,2,3,4,5,6,7,8]) = ${sum1}</p>
+               <p>arraySum([10,20,30,40,50]) = ${sum2}</p>
+               <p class="success">✓ 计算正确</p>
+           `;
+       };
+       
+       window.testFormatAmount = () => {
+         const amount1 = 1234567.89;
+         const amount2 = 1000000;
+         const amount3 = 999;
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>金额格式化测试：</h4>
+               <p>formatAmount(1234567.89) = ${formatAmount(amount1)}</p>
+               <p>formatAmount(1000000, 0) = ${formatAmount(amount2, 0)}</p>
+               <p>formatAmount(999) = ${formatAmount(amount3)}</p>
+               <p class="success">✓ 格式化成功</p>
+           `;
+       };
+       
+       window.testMaskString = () => {
+         const phone = '13800138000';
+         const idCard = '110101199001011234';
+         const name = '张三丰';
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>星号替换测试：</h4>
+               <p>maskString('${phone}', 3, 4) = ${maskString(phone, 3, 4)}</p>
+               <p>maskString('${idCard}', 6, 4) = ${maskString(idCard, 6, 4)}</p>
+               <p>maskString('${name}', 1, 1) = ${maskString(name, 1, 1)}</p>
+               <p class="success">✓ 脱敏成功</p>
+           `;
+       };
+       
+       window.testFormatPhone = () => {
+         const phone1 = '13800138000';
+         const phone2 = '13900139000';
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>手机号脱敏测试：</h4>
+               <p>formatPhone('${phone1}') = ${formatPhone(phone1)}</p>
+               <p>formatPhone('${phone2}', '#') = ${formatPhone(phone2, '#')}</p>
+               <p class="success">✓ 脱敏成功</p>
+           `;
+       };
+       
+       window.testVerifyUtils = () => {
+         // 基础验证
+         const emailValid = VerifyUtils.isEmail('test@example.com');
+         const phoneValid = VerifyUtils.isPhone('13800138000');
+         const urlValid = VerifyUtils.isUrl('https://example.com');
+         const numberValid = VerifyUtils.isNumber('123.45');
+         const noSpaceValid = VerifyUtils.isNoSpace('hello');
+         const chineseValid = VerifyUtils.isChinese('你好');
+         const passwordValid = VerifyUtils.isPassword('Abc@1234');
+         
+         // 经纬度验证
+         const longitudeValid = VerifyUtils.isLongitude(116.4);
+         const latitudeValid = VerifyUtils.isLatitude(39.9);
+         
+         // 坐标串验证
+         const coordsValid1 = VerifyUtils.isInputCoordinates('116.4,39.9');
+         const coordsValid2 = VerifyUtils.isInputCoordinates('116.4,39.9;117.4,40.9');
+         
+         // 空值检查
+         const emptyCheck = VerifyUtils.isEmpty('');
+         
+         document.getElementById('helpersResult').innerHTML = `
+               <h4>正则验证工具类测试：</h4>
+               <p>邮箱验证 (test@example.com): ${emailValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>手机验证 (13800138000): ${phoneValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>URL 验证 (https://example.com): ${urlValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>数字验证 (123.45): ${numberValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>无空格验证 (hello): ${noSpaceValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>中文验证 (你好): ${chineseValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>密码验证 (Abc@1234): ${passwordValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>经度验证 (116.4): ${longitudeValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>纬度验证 (39.9): ${latitudeValid ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>坐标串验证 (116.4,39.9): ${coordsValid1 ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>坐标串验证 (116.4,39.9;117.4,40.9): ${coordsValid2 ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+               <p>空值检查 (""): ${emptyCheck ? '<span class="success">✓</span>' : '<span class="error">✗</span>'}</p>
+           `;
        };
    </script>
 </body>

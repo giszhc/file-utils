@@ -7,12 +7,89 @@
 - **文件读取**：支持读取文本、二进制数据、Data URL 等
 - **文件下载**：支持从 URL、Blob、Base64 等多种方式下载文件
 - **文件转换**：支持文件格式转换（如 Base64 转 Blob、File 转 Base64 等）
+- **文件压缩**：支持将多个文件打包为 ZIP 压缩包
 - **文件压缩**：支持图片压缩处理
 - **文件生成**：支持生成 TXT、CSV、JSON 格式文件，可选择返回 File 对象而不下载
 - **文件验证**：提供完整的文件验证和类型判断功能
 - **剪贴板操作**：支持一键复制文本到剪贴板，并支持成功/失败回调
+- **辅助工具**：提供深拷贝、UUID 生成、URL 参数解析、对象转 FormData 等实用工具
+- **正则验证**：提供邮箱、手机、URL、坐标等多种表单验证功能
 - **自动清理**：自动管理临时创建的 Blob URL，防止内存泄漏
 - **TypeScript**：完善的类型定义支持
+
+------
+
+## 方法列表
+
+### 文件读取
+- `readFile` - 读取文件内容为文本、ArrayBuffer 或 DataURL
+- `readTxtFile` - 读取 TXT 文件内容
+- `readCsvFile` - 读取 CSV 文件并解析为对象数组
+- `readJsonFile` - 读取 JSON 文件并解析为 JavaScript 对象
+
+### 文件下载
+- `downloadFile` - 从 URL 下载文件
+- `downloadBlob` - 下载 Blob 对象
+- `downloadBase64` - 下载 Base64 编码的文件
+- `downloadMultiple` - 批量下载多个文件
+
+### 文件转换
+- `fileToBase64` - 将 File/Blob 转换为 Base64
+- `base64ToBlob` - 将 Base64 转换为 Blob
+- `blobToFile` - 将 Blob 转换为指定文件名的 File
+- `compressImage` - 压缩图片
+
+### 文件压缩
+- `fileListToZip` - 将文件列表打包为 ZIP
+- `downloadFileListAsZip` - 下载文件列表的 ZIP 压缩包
+
+### 文件生成
+- `generateTxtFile` - 生成 TXT 文件
+- `generateCsvFile` - 生成 CSV 文件
+- `generateJsonFile` - 生成 JSON 文件
+
+### 文件验证
+- `checkFileType` - 检查文件类型
+- `checkFileSize` - 检查文件大小
+- `isImage` - 判断是否为图片
+- `getImageDimensions` - 获取图片尺寸
+- `validateFile` - 综合文件验证
+- `formatFileSize` - 格式化文件大小显示
+- `getFileExtension` - 获取文件扩展名
+- `getFileNameWithoutExtension` - 获取文件名（不含扩展名）
+- `getFileInfo` - 获取文件完整信息
+
+### 剪贴板操作
+- `copyToClipboard` - 复制文本到剪贴板
+- `pasteFromClipboard` - 从剪贴板读取文本
+
+### 辅助工具
+- `deepClone` - 深拷贝对象和数组
+- `numberFixed` - 数字保留指定小数位
+- `parseUrlParams` - 解析 URL 参数为对象
+- `objectToFormData` - 对象转换为 FormData
+- `omitKeys` - 从对象中移除指定的键
+- `generateUUID` - 生成 UUID（支持移除横杠）
+- `arraySum` - 数字数组求和
+- `formatAmount` - 格式化金额（千分位）
+- `maskString` - 字符串中间部分替换为星号
+- `formatPhone` - 格式化手机号码（隐藏中间 4 位）
+
+### 正则验证 (VerifyUtils)
+- `VerifyUtils.isEmail` - 邮箱验证
+- `VerifyUtils.isNumber` - 数字验证
+- `VerifyUtils.isPhone` - 手机号验证
+- `VerifyUtils.isUrl` - URL 链接验证
+- `VerifyUtils.isIP` - IP 地址验证
+- `VerifyUtils.isNoSpace` - 无空格验证
+- `VerifyUtils.isChinese` - 中文验证
+- `VerifyUtils.isPassword` - 密码强度验证
+- `VerifyUtils.isLongitude` - 经度验证
+- `VerifyUtils.isLatitude` - 纬度验证
+- `VerifyUtils.isInputCoordinates` - 坐标串验证
+- `VerifyUtils.isEmpty` - 空值检查
+- `VerifyUtils.getRule` - 生成表单验证规则
+- `VerifyUtils.validate` - 带错误消息的验证
 
 ------
 
@@ -378,6 +455,161 @@ import { pasteFromClipboard } from '@giszhc/file-utils';
 // 读取剪贴板内容
 const text = await pasteFromClipboard();
 console.log('剪贴板内容:', text);
+```
+
+### 21. 深拷贝对象
+
+```ts
+import { deepClone } from '@giszhc/file-utils';
+
+// 深拷贝对象
+const obj = { a: 1, b: { c: 2 }, d: [1, 2, 3] };
+const copy = deepClone(obj);
+copy.b.c = 3;
+console.log(obj.b.c); // 2 (原对象不受影响)
+
+// 支持 Date、RegExp 等特殊类型
+const data = {
+  date: new Date(),
+  regex: /test/g,
+  nested: { array: [1, 2, 3] }
+};
+const cloned = deepClone(data);
+```
+
+### 22. 数字保留小数位
+
+```ts
+import { numberFixed } from '@giszhc/file-utils';
+
+// 保留 2 位小数（默认）
+const num1 = numberFixed(3.14159); // 3.14
+
+// 自定义小数位数
+const num2 = numberFixed(10, 3); // 10
+const num3 = numberFixed(2.5678, 1); // 2.6
+```
+
+### 23. 解析 URL 参数
+
+```ts
+import { parseUrlParams } from '@giszhc/file-utils';
+
+// 解析当前页面 URL 参数
+const params = parseUrlParams();
+console.log(params.id); // 从当前 URL 获取 id 参数
+
+// 解析指定 URL 参数
+const url = 'https://example.com?name=John&age=30';
+const urlParams = parseUrlParams(url);
+// { name: 'John', age: '30' }
+```
+
+### 24. 对象转 FormData
+
+```ts
+import { objectToFormData } from '@giszhc/file-utils';
+
+// 简单对象转换
+const obj = { name: 'John', age: 30 };
+const formData = objectToFormData(obj);
+
+// 嵌套对象
+const user = {
+  name: 'John',
+  profile: {
+    email: 'john@example.com',
+    phone: '123456'
+  }
+};
+const fd = objectToFormData(user);
+
+// 包含文件
+const fileInput = document.querySelector('input[type="file"]');
+const data = {
+  avatar: fileInput.files[0],
+  description: 'User avatar'
+};
+const fdWithFile = objectToFormData(data);
+```
+
+### 25. 移除对象的特定键
+
+```ts
+import { omitKeys } from '@giszhc/file-utils';
+
+// 移除指定的键
+const obj = { a: 1, b: 2, c: 3, d: 4 };
+const result = omitKeys(obj, ['b', 'd']);
+// { a: 1, c: 3 }
+
+// 反向操作：只保留指定的键
+const filtered = omitKeys(obj, ['a', 'c'], true);
+// { a: 1, c: 3 }
+```
+
+### 26. 生成 UUID
+
+```ts
+import { generateUUID } from '@giszhc/file-utils';
+
+// 生成带横杠的 UUID（默认）
+const uuid1 = generateUUID();
+// "550e8400-e29b-41d4-a716-446655440000"
+
+// 生成不带横杠的 UUID
+const uuid2 = generateUUID(true);
+// "550e8400e29b41d4a716446655440000"
+
+// 使用场景：生成唯一 ID
+const userId = generateUUID();
+const requestId = generateUUID(true); // 无横杠版本用于数据库存储
+```
+
+### 27. 正则验证工具类
+
+```ts
+import { VerifyUtils } from '@giszhc/file-utils';
+
+// 基础验证
+VerifyUtils.isEmail('test@example.com'); // true
+VerifyUtils.isPhone('13800138000'); // true
+VerifyUtils.isUrl('https://example.com'); // true
+VerifyUtils.isNumber('123.45'); // true
+VerifyUtils.isNoSpace('hello'); // true
+VerifyUtils.isChinese('你好'); // true
+VerifyUtils.isPassword('Abc@1234'); // true
+
+// 经纬度验证
+VerifyUtils.isLongitude(116.4); // true
+VerifyUtils.isLatitude(39.9); // true
+
+// 坐标串验证（支持多级分隔符）
+VerifyUtils.isInputCoordinates('116.4,39.9'); // true
+VerifyUtils.isInputCoordinates('116.4,39.9;117.4,40.9'); // true
+VerifyUtils.isInputCoordinates('116.4,39.9|117.4,40.9'); // true
+
+// 空值检查
+VerifyUtils.isEmpty(''); // true
+VerifyUtils.isEmpty(null); // true
+VerifyUtils.isEmpty([]); // true
+VerifyUtils.isEmpty({}); // true
+
+// 生成 Element UI 表单验证规则
+const rules = {
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    VerifyUtils.getRule('email', 'blur')
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    VerifyUtils.getRule('phone', 'blur')
+  ],
+  url: [VerifyUtils.getRule('url')]
+};
+
+// 获取错误提示语
+console.log(VerifyUtils.messages.email); // "请输入正确的邮箱地址"
 ```
 
 ------

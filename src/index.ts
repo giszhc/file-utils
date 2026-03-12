@@ -35,8 +35,15 @@ export {
 // 文件转换
 export {
    fileToBase64,
-   base64ToBlob
+   base64ToBlob,
+   blobToFile
 } from './convert';
+
+// 文件压缩
+export {
+   fileListToZip,
+   downloadFileListAsZip
+} from './compress';
 
 // 剪贴板操作
 export {
@@ -68,6 +75,27 @@ export {
    getFileInfo
 } from './utils';
 
+// 辅助工具
+export {
+   deepClone,
+   numberFixed,
+   parseUrlParams,
+   objectToFormData,
+   omitKeys,
+   generateUUID,
+   arraySum,
+   formatAmount,
+   maskString,
+   formatPhone
+} from './helpers';
+
+// 验证工具
+export {
+   VerifyUtils,
+   type IVerifyResult,
+   type IVerifyMessages
+} from './verify';
+
 // 默认导出所有方法
 import {
    readFile,
@@ -86,7 +114,13 @@ import {
 import {
    fileToBase64,
    base64ToBlob,
+   blobToFile,
 } from './convert';
+
+import {
+   fileListToZip,
+   downloadFileListAsZip,
+} from './compress';
 
 import {
    copyToClipboard,
@@ -114,6 +148,23 @@ import {
    getFileInfo,
 } from './utils';
 
+import {
+   deepClone,
+   numberFixed,
+   parseUrlParams,
+   objectToFormData,
+   omitKeys,
+   generateUUID,
+   arraySum,
+   formatAmount,
+   maskString,
+   formatPhone,
+} from './helpers';
+
+import {
+   VerifyUtils,
+} from './verify';
+
 export default {
     // 读取
    readFile,
@@ -130,6 +181,11 @@ export default {
     // 转换
    fileToBase64,
    base64ToBlob,
+   blobToFile,
+    
+    // 压缩
+   fileListToZip,
+   downloadFileListAsZip,
     
     // 剪贴板
    copyToClipboard,
@@ -152,4 +208,17 @@ export default {
    getFileExtension,
    getFileNameWithoutExtension,
    getFileInfo,
+    
+    // 辅助工具
+   deepClone,
+   numberFixed,
+   parseUrlParams,
+   objectToFormData,
+   omitKeys,
+   generateUUID,
+   arraySum,
+   formatAmount,
+   maskString,
+   formatPhone,
+   VerifyUtils,
 };

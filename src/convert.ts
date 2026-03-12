@@ -64,3 +64,19 @@ export function base64ToBlob(base64: string, mimeType?: string): Blob {
     const byteArray = new Uint8Array(byteNumbers);
     return new Blob([byteArray], { type: mimeType });
 }
+
+/**
+ * 将 Blob 转换为指定文件名的 File 对象
+ *
+ * @param blob - Blob 对象
+ * @param filename - 文件名
+ * @returns File - 转换后的 File 对象
+ *
+ * @example
+ * const blob = new Blob(['Hello'], { type: 'text/plain' });
+ * const file = blobToFileName(blob, 'hello.txt');
+ * console.log(file.name); // "hello.txt"
+ */
+export function blobToFile(blob: Blob, filename: string): File {
+    return new File([blob], filename, { type: blob.type });
+}
