@@ -58,8 +58,8 @@
 - `getImageDimensions` - 获取图片尺寸
 - `validateFile` - 综合文件验证
 - `formatFileSize` - 格式化文件大小显示
-- `getFileExtension` - 获取文件扩展名
-- `getFileNameWithoutExtension` - 获取文件名（不含扩展名）
+- `getFileNameSuffix` - 获取文件扩展名（不含点号）
+- `getFileNamePrefix` - 获取文件名（不含扩展名）
 - `getFileInfo` - 获取文件完整信息
 
 ### 剪贴板操作
@@ -77,6 +77,10 @@
 - `formatAmount` - 格式化金额（千分位）
 - `maskString` - 字符串中间部分替换为星号
 - `formatPhone` - 格式化手机号码（隐藏中间 4 位）
+- `arrayStringFormatNumber` - 字符串数组转数值数组
+- `arrayCustomSort` - 自定义排序（按指定 id 顺序）
+- `jsonConvertTreeList` - 扁平数据转树形结构
+- `jsonConvertGeneralList` - 树形结构转扁平数据
 
 ### 正则验证 (VerifyUtils)
 - `VerifyUtils.isEmail` - 邮箱验证
@@ -319,15 +323,15 @@ console.log(file.size); // 文件大小（字节）
 ### 11. 获取文件扩展名和文件名
 
 ```ts
-import { getFileExtension, getFileNameWithoutExtension } from '@giszhc/file-utils';
+import { getFileNameSuffix, getFileNamePrefix } from '@giszhc/file-utils';
 
 const file = new File(['content'], 'document.pdf', { type: 'application/pdf' });
 
-// 获取扩展名
-const ext = getFileExtension(file); // ".pdf"
+// 获取扩展名（不含点号）
+const ext = getFileNameSuffix(file); // "pdf"
 
 // 获取文件名（不含扩展名）
-const name = getFileNameWithoutExtension(file); // "document"
+const name = getFileNamePrefix(file); // "document"
 ```
 
 ### 12. 文件类型验证
@@ -1028,6 +1032,160 @@ if (!result.valid) {
 } else {
     console.log('验证通过');
 }
+```
+
+### arrayStringFormatNumber(arrayList: string[]): number[]
+
+将字符串数组转换为数值数组。
+
+```ts
+import { arrayStringFormatNumber } from '@giszhc/file-utils';
+
+// 将字符串数字数组转换为数值数组
+const strArr = ["0", "1", "2", "3", "4"];
+const numArr = arrayStringFormatNumber(strArr);
+console.log(numArr); // [0, 1, 2, 3, 4]
+
+// 处理带小数点的字符串
+const decimalStrs = ["1.5", "2.7", "3.14"];
+const decimalNums = arrayStringFormatNumber(decimalStrs);
+console.log(decimalNums); // [1.5, 2.7, 3.14]
+```
+
+### arrayCustomSort(ids: string[], dataList: any[], cbA: Function, cbB: Function): void
+
+根据给定的 id 顺序对数据列表进行排序。
+
+```ts
+import { arrayCustomSort } from '@giszhc/file-utils';
+
+// 基本使用
+const ids = ['id1', 'id2', 'id3'];
+const dataList = [
+    { id: 'id3', name: 'Layer 3' },
+    { id: 'id1', name: 'Layer 1' },
+    { id: 'id2', name: 'Layer 2' }
+];
+
+arrayCustomSort(ids, dataList, item => item.id, item => item.id);
+// 排序后：[
+//   { id: 'id1', name: 'Layer 1' },
+//   { id: 'id2', name: 'Layer 2' },
+//   { id: 'id3', name: 'Layer 3' }
+// ]
+
+// 使用不同的回调函数处理不同类型的数据
+const orderIds = ['admin', 'user', 'guest'];
+const roles = [
+    { roleId: 'guest', roleName: '访客' },
+    { roleId: 'admin', roleName: '管理员' },
+    { roleId: 'user', roleName: '普通用户' }
+];
+
+arrayCustomSort(orderIds, roles, role => role.roleId, role => role.roleId);
+// 按指定顺序排序：管理员、普通用户、访客
+```
+
+### jsonConvertTreeList(dataList: any[]): any[]
+
+将扁平数据数组转换为树形结构。
+
+```ts
+import { jsonConvertTreeList } from '@giszhc/file-utils';
+
+// 扁平数据
+const flatData = [
+    { id: 1, pid: null, name: '根节点' },
+    { id: 2, pid: 1, name: '子节点 1' },
+    { id: 3, pid: 1, name: '子节点 2' },
+    { id: 4, pid: 2, name: '孙节点 1' }
+];
+
+const tree = jsonConvertTreeList(flatData);
+/*
+返回树形结构：
+[
+  {
+    id: 1,
+    pid: null,
+    name: '根节点',
+    children: [
+      {
+        id: 2,
+        pid: 1,
+        name: '子节点 1',
+        children: [
+          { id: 4, pid: 2, name: '孙节点 1' }
+        ]
+      },
+      {
+        id: 3,
+        pid: 1,
+        name: '子节点 2',
+        children: []
+      }
+    ]
+  }
+]
+*/
+
+// 应用场景：菜单生成、组织架构展示
+const menuData = [
+    { id: 1, pid: null, title: '系统管理' },
+    { id: 2, pid: 1, title: '用户管理' },
+    { id: 3, pid: 1, title: '角色管理' },
+    { id: 4, pid: 2, title: '用户列表' },
+    { id: 5, pid: 2, title: '用户新增' }
+];
+
+const menuTree = jsonConvertTreeList(menuData);
+```
+
+### jsonConvertGeneralList(treeList: any[], delChildrenField?: boolean): any[]
+
+将树形结构转换回扁平数据数组。
+
+```ts
+import { jsonConvertGeneralList } from '@giszhc/file-utils';
+
+// 树形结构
+const tree = [
+    {
+        id: 1,
+        pid: null,
+        name: '根节点',
+        children: [
+            {
+                id: 2,
+                pid: 1,
+                name: '子节点 1',
+                children: [
+                    { id: 4, pid: 2, name: '孙节点 1' }
+                ]
+            },
+            {
+                id: 3,
+                pid: 1,
+                name: '子节点 2',
+                children: []
+            }
+        ]
+    }
+];
+
+// 保留 children 字段
+const flatWithChildren = jsonConvertGeneralList(tree);
+console.log(flatWithChildren.length); // 4
+
+// 删除 children 字段
+const flatWithoutChildren = jsonConvertGeneralList(tree, true);
+console.log(flatWithoutChildren[0]); 
+// { id: 1, pid: null, name: '根节点' } (不含 children)
+
+// 应用场景：将树形菜单保存为扁平数据存储到数据库
+const menuTree = [...]; // 树形菜单
+const flatMenuData = jsonConvertGeneralList(menuTree, true);
+// 可以发送到后端保存到数据库
 ```
 
 ------
