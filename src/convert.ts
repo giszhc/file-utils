@@ -3,6 +3,7 @@
  */
 
 import { readFile } from './read';
+// @ts-ignore
 import { changeDpiDataUrl, changeDpiBlob } from 'changedpi';
 
 /**
