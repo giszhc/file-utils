@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      changedpi:
+        specifier: ^1.0.4
+        version: 1.0.4
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -305,6 +308,9 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
+  changedpi@1.0.4:
+    resolution: {integrity: sha512-9r6MNQrbg+cFURvEy10wo9Q35PD5GVj2GvXCbUYv8mU0Uf/NbkR7KlzMrjT4Ycd8a2nxApFJXQX2lTOPRFyG2g==}
+
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
@@ -593,6 +599,8 @@ snapshots:
     optional: true
 
   '@types/estree@1.0.8': {}
+
+  changedpi@1.0.4: {}
 
   core-util-is@1.0.3: {}
 

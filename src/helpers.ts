@@ -187,6 +187,29 @@ export function generateUUID(removeHyphens: boolean = false): string {
 }
 
 /**
+ * 过滤对象中的空值
+ * 移除值为空字符串、null 或 undefined 的属性
+ * 
+ * @param data - 需要过滤的对象
+ * @returns Record<string, any> - 过滤后的新对象
+ * 
+ * @example
+ * const data = { a: 1, b: '', c: null, d: undefined, e: 'test' };
+ * const filtered = filterEmptyValue(data); // { a: 1, e: 'test' }
+ * 
+ * @example
+ * const params = { name: 'John', age: null, email: '' };
+ * const validParams = filterEmptyValue(params); // { name: 'John' }
+ */
+export function filterEmptyValue(data: Record<string, any>): Record<string, any> {
+    return Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => 
+            value !== '' && value !== null && value !== undefined
+        )
+    );
+}
+
+/**
  * 数组求和
  * 
  * @param arr - 数字数组
@@ -270,4 +293,201 @@ export function maskString(str: string, start: number = 3, end: number = 4, mask
 export function formatPhone(phone: string, maskChar: string = '*'): string {
     if (!phone || phone.length < 7) return phone;
     return maskString(phone, 3, 4, maskChar);
+}
+
+/**
+ * arrayStringFormatNumber 函数用于将字符串数组转换为数值数组
+ *
+ * @param arrayList - 字符串数组
+ * @returns number[] - 返回格式化后的数值数组
+ *
+ * @example
+ * // 将字符串数字数组转换为数值数组
+ * const result = arrayStringFormatNumber(["0", "1", "2", "3", "4"]);
+ * console.log(result); // [0, 1, 2, 3, 4]
+ *
+ * @description
+ * 此方法将传入的字符串数组格式化为数值数组，并返回新的数组
+ */
+export function arrayStringFormatNumber(arrayList: string[]): number[] {
+    return arrayList.map(str => Number(str));
+}
+
+/**
+ * arrayCustomSort 函数用于根据给定的 id 顺序对数据列表进行排序。
+ *
+ * @param ids - 包含 id 的数组，定义排序的顺序。
+ * @param dataList - 需要排序的数据列表。
+ * @param cbA - 一个回调函数，用于从数据列表的每个元素中提取 id，用于排序。
+ * @param cbB - 一个回调函数，用于从数据列表的每个元素中提取 id，用于排序。
+ * @returns void - 直接修改原数组，不返回值
+ *
+ * @example
+ * ```typescript
+ * const ids = ['id1', 'id2', 'id3'];
+ * const dataList = [
+ *   { id: 'id3', name: 'Layer 3' },
+ *   { id: 'id1', name: 'Layer 1' },
+ *   { id: 'id2', name: 'Layer 2' }
+ * ];
+ * arrayCustomSort(ids, dataList, item => item.id, item => item.id);
+ * // dataList 将被排序为 [
+ * //   { id: 'id1', name: 'Layer 1' },
+ * //   { id: 'id2', name: 'Layer 2' },
+ * //   { id: 'id3', name: 'Layer 3' }
+ * // ]
+ * ```
+ *
+ * @description
+ * cbA 和 cbB 允许对数据列表中的不同类型项进行单独的处理。
+ */
+export function arrayCustomSort(
+    ids: string[],
+    dataList: any[],
+    cbA: (item: any) => any,
+    cbB: (item: any) => any
+): void {
+    // 创建一个 Map 来存储每个 id 的索引
+    const idIndexMap = new Map<string, number>();
+    ids.forEach((id, index) => {
+        idIndexMap.set(id, index);
+    });
+
+    dataList.sort((a, b) => {
+        const aIndex = idIndexMap.get(cbA(a)) ?? -1; // 如果找不到 id，返回 -1
+        const bIndex = idIndexMap.get(cbB(b)) ?? -1;
+
+        // 如果索引相同，则不排序
+        if (aIndex === bIndex) return 0;
+        // 如果 a 的索引大于 b 的索引，则交换元素，否则返回 -1 不需要交换
+        return aIndex > bIndex ? 1 : -1;
+    });
+}
+
+/**
+ * jsonConvertTreeList 函数实现了把扁平的数据数组，按照父子节点的关系转换为树形结构。
+ *
+ * @param dataList - 输入的扁平数据数组，其中每个元素是一个对象，至少包含 id 和 pid 两个属性，表示自身的 ID 和其父节点的 ID。
+ * @returns any[] - 返回构建好的树形结构数组，其中每个节点包含 id，pid 和 children (如果有的话) 三个属性，children 属性是一个数组，里面包含其所有子节点。
+ *
+ * @example
+ * ```typescript
+ * const flatData = [
+ *   { id: 1, pid: null, name: '根节点' },
+ *   { id: 2, pid: 1, name: '子节点 1' },
+ *   { id: 3, pid: 1, name: '子节点 2' },
+ *   { id: 4, pid: 2, name: '孙节点 1' }
+ * ];
+ * const tree = jsonConvertTreeList(flatData);
+ * // 返回树形结构：[
+ * //   {
+ * //     id: 1,
+ * //     pid: null,
+ * //     name: '根节点',
+ * //     children: [
+ * //       {
+ * //         id: 2,
+ * //         pid: 1,
+ * //         name: '子节点 1',
+ * //         children: [{ id: 4, pid: 2, name: '孙节点 1' }]
+ * //       },
+ * //       { id: 3, pid: 1, name: '子节点 2', children: [] }
+ * //     ]
+ * //   }
+ * // ]
+ * ```
+ *
+ * @description
+ * 函数首先定义了一个递归的函数 buildChildren，用于构建指定节点的所有子节点。然后通过 filter 方法找出所有的根节点，对每个根节点调用 buildChildren 函数构建其子树。
+ * 最后返回包含所有子树的数组。
+ */
+export function jsonConvertTreeList(dataList: any[]): any[] {
+    // 递归构建子节点的函数
+    const buildChildren = (data: any[], parentId: any): any[] => {
+        const children: any[] = [];
+        // 遍历数据，找到指定父节点的子节点
+        data.forEach((node: any) => {
+            if (node.pid === parentId) {
+                // 递归构建子节点的子节点
+                const nestedChildren = buildChildren(data, node.id);
+                if (nestedChildren.length) {
+                    node.children = nestedChildren;
+                }
+                children.push(node);
+            }
+        });
+        return children;
+    };
+
+    const tree: any[] = [];
+    // 找到所有的根节点，即没有父节点的节点----核心代码
+    const roots = dataList.filter(
+        node => !dataList.some(parent => parent.id === node.pid)
+    );
+    // 遍历每个根节点，递归地构建树
+    roots.forEach(root => {
+        const children = buildChildren(dataList, root.id);
+        if (children.length) {
+            root.children = children;
+        }
+        tree.push(root);
+    });
+
+    return tree;
+}
+
+/**
+ * jsonConvertGeneralList 函数是将嵌套的树形结构转换回扁平的数据数组。也可选择是否删除 children 属性。
+ *
+ * @param treeList - 输入的树形结构数组。
+ * @param delChildrenField - 可选，是否要删除每个节点的 children 字段，默认为 false，即默认不删除。
+ * @returns any[] - 返回扁平的数据数组。
+ *
+ * @example
+ * ```typescript
+ * const tree = [
+ *   {
+ *     id: 1,
+ *     pid: null,
+ *     name: '根节点',
+ *     children: [
+ *       { id: 2, pid: 1, name: '子节点 1', children: [] },
+ *       { id: 3, pid: 1, name: '子节点 2', children: [] }
+ *     ]
+ *   }
+ * ];
+ * const flat = jsonConvertGeneralList(tree);
+ * // 返回扁平数组：[
+ * //   { id: 1, pid: null, name: '根节点', children: [...] },
+ * //   { id: 2, pid: 1, name: '子节点 1', children: [] },
+ * //   { id: 3, pid: 1, name: '子节点 2', children: [] }
+ * // ]
+ * ```
+ *
+ * @description
+ * 函数首先定义了一个递归的函数 loop，用于处理每个节点和其子节点。然后对输入的树根节点调用 loop 函数。
+ * 如果设置了 delChildrenField 为 true，函数还会删除每个节点的 children 字段。
+ */
+export function jsonConvertGeneralList(
+    treeList: any[],
+    delChildrenField: boolean = false
+): any[] {
+    const treeArr: any[] = [];
+
+    const loop = function(list: any[]) {
+        for (const item of list) {
+            const newItem = { ...item };
+            if (delChildrenField && newItem.children) {
+                delete newItem.children;
+            }
+            treeArr.push(newItem);
+            if (item.children) {
+                loop(item.children);
+            }
+        }
+    };
+
+    loop(treeList);
+
+    return treeArr;
 }

@@ -37,6 +37,9 @@
 - `fileToBase64` - 将 File/Blob 转换为 Base64
 - `base64ToBlob` - 将 Base64 转换为 Blob
 - `blobToFile` - 将 Blob 转换为指定文件名的 File
+- `base64ToFile` - 将 Base64 转换为 File
+- `imageUrlToBase64` - 将图片 URL 转换为 Base64
+- `fileChangedImageDPI` - 修改图片的 DPI 分辨率
 - `compressImage` - 压缩图片
 
 ### 文件压缩
@@ -750,6 +753,92 @@ import { base64ToBlob } from '@giszhc/file-utils';
 const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
 const blob = base64ToBlob(base64);
 ```
+
+### base64ToFile(base64: string, filename?: string, mimeType?: string): File
+
+将 Base64 编码转换为 File 对象。
+
+```ts
+import { base64ToFile } from '@giszhc/file-utils';
+
+// 转换带前缀的 Base64
+const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
+const file = base64ToFile(base64, 'image.png');
+console.log(file.name); // "image.png"
+
+// 转换不带前缀的 Base64
+const pureBase64 = 'iVBORw0KGgoAAAANS...';
+const file2 = base64ToFile(pureBase64, 'image.png', 'image/png');
+```
+
+### imageUrlToBase64(imageUrl: string, mimeType?: string, quality?: number): Promise<string>
+
+将图片 URL 转换为 Base64 编码。使用 Canvas 将图片绘制后转换为 Base64。
+
+```ts
+import { imageUrlToBase64 } from '@giszhc/file-utils';
+
+// 转换远程图片
+const base64 = await imageUrlToBase64('https://example.com/image.jpg');
+console.log(base64); // data:image/png;base64,...
+
+// 转换为 JPEG 格式，80% 质量
+const jpegBase64 = await imageUrlToBase64(
+    'https://example.com/image.png',
+    'image/jpeg',
+    0.8
+);
+```
+
+### fileChangedImageDPI(source: string | Blob, dpi?: number): Promise<string | Blob>
+
+修改图片的分辨率 DPI（每英寸点数）。支持 Base64 字符串和 Blob 对象。返回 Promise。
+
+```ts
+import { fileChangedImageDPI } from '@giszhc/file-utils';
+
+// 修改 Base64 图片的 DPI 为 300（适合打印）
+const base64 = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
+const highDpiBase64 = await fileChangedImageDPI(base64, 300);
+console.log('高分辨率图片:', highDpiBase64);
+
+// 修改 Blob 图片的 DPI
+const blob = new Blob([imageData], { type: 'image/png' });
+const newBlob = await fileChangedImageDPI(blob, 300);
+// newBlob 是修改后的 Blob 对象
+
+// 使用默认 DPI (96，屏幕显示标准)
+const defaultDpiResult = await fileChangedImageDPI(base64);
+
+// 设置为 72 DPI（网页优化）
+const webOptimized = await fileChangedImageDPI(base64, 72);
+
+// 结合其他方法使用
+import { fileToBase64, base64ToBlob, fileChangedImageDPI } from '@giszhc/file-utils';
+
+const handleImageUpload = async (file: File) => {
+    // 方式 1: 使用 Base64
+    const base64 = await fileToBase64(file);
+    const highResBase64 = await fileChangedImageDPI(base64, 300);
+    
+    // 方式 2: 直接使用 Blob
+    const highResBlob = await fileChangedImageDPI(file, 300);
+    const highResFile = base64ToFile(highResBase64, 'high-res.png');
+};
+```
+
+**应用场景：**
+- 🖼️ **打印前提升 DPI**：将网络图片的 DPI 从 72 提升到 300，获得更好的打印质量
+- 🌐 **网页优化**：降低 DPI 到 72，减少文件体积，加快网页加载速度
+- 📱 **设备适配**：根据不同设备的显示需求调整 DPI
+- 📄 **出版印刷**：满足专业印刷的 300 DPI 或更高要求
+
+**注意事项：**
+- 该方法仅修改图片元数据中的 DPI 值，不会改变图片的像素尺寸
+- DPI 值越高，打印时的物理尺寸越小，但细节越清晰
+- 标准屏幕显示通常使用 96 DPI，印刷品通常需要 300 DPI
+- 输入类型为 Base64 时返回 Base64，输入类型为 Blob 时返回 Blob
+- **该方法是异步函数，需要使用 await 调用**
 
 ### compressImage(file: File, quality?: number, maxWidth?: number, maxHeight?: number): Promise<Blob>
 

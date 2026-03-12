@@ -426,6 +426,7 @@
                 <div class="button-group">
                     <button onclick="testFileToBase64()">File → Base64</button>
                     <button onclick="testBase64ToFile()">Base64 → Blob</button>
+                    <button onclick="testFileChangedImageDPI()">修改图片 DPI</button>
                 </div>
                 <div class="result" id="convertResult"></div>
             </div>
@@ -494,6 +495,9 @@
          downloadBase64,
          fileToBase64,
          base64ToBlob,
+         base64ToFile,
+         imageUrlToBase64,
+         fileChangedImageDPI,
          generateTxtFile,
          generateCsvFile,
          generateJsonFile,
@@ -502,19 +506,22 @@
          isImage,
          getImageDimensions,
            validateFile,
-         getFileExtension,
-         getFileNameWithoutExtension,
          getFileInfo,
-           formatFileSize,
+         formatFileSize,
          copyToClipboard,
          pasteFromClipboard
-       } from './src/index.ts';
+       } from './src/index';
+       
+       import {
+         getFileNameSuffix,
+         getFileNamePrefix,
+       } from './src/utils';
        
        import {
          fileListToZip,
          downloadFileListAsZip
-       } from './src/index.ts';
-       
+       } from './src/compress';
+             
        import {
          deepClone,
          numberFixed,
@@ -525,9 +532,12 @@
          arraySum,
          formatAmount,
          maskString,
-         formatPhone,
+         formatPhone
+       } from './src/helpers';
+             
+       import {
          VerifyUtils
-       } from './src/index.ts';
+       } from './src/verify';
        
        let currentFile = null;
        
@@ -551,7 +561,7 @@
                        <strong>文件 ${index + 1}:</strong> ${file.name}<br>
                        <strong style="color: #667eea;">类型:</strong> ${file.type || '未知'}<br>
                        <strong style="color: #667eea;">大小:</strong> ${formatFileSize(file.size)} (${file.size} 字节)<br>
-                       <strong style="color: #667eea;">扩展名:</strong> ${getFileExtension(file)}
+                       <strong style="color: #667eea;">扩展名:</strong> ${getFileNameSuffix(file)}
                    </div>
                `;
            });
@@ -692,7 +702,7 @@
        // ========== 文件信息测试 ==========
        window.testGetFileExtension = () => {
            if (!currentFile) return alert('请先选择文件');
-         const ext = getFileExtension(currentFile);
+         const ext = getFileNameSuffix(currentFile);
          document.getElementById('infoResult').innerHTML = `
                <h4>文件扩展名：</h4>
                <p>${ext || '(无扩展名)'}</p>
@@ -701,7 +711,7 @@
        
        window.testGetFileName = () => {
            if (!currentFile) return alert('请先选择文件');
-         const name = getFileNameWithoutExtension(currentFile);
+         const name = getFileNamePrefix(currentFile);
          document.getElementById('infoResult').innerHTML = `
                <h4>文件名（不含扩展名）：</h4>
                <p>${name}</p>
@@ -846,6 +856,48 @@
                <pre>MIME 类型：${blob.type}\n大小：${blob.size} 字节</pre>
                <p class="success">✓ 转换成功</p>
            `;
+       };
+       
+       window.testFileChangedImageDPI = async () => {
+           if (!currentFile) return alert('请先选择图片文件');
+           if (!isImage(currentFile)) return alert('请选择图片文件');
+           
+           try {
+               // 方式 1: 使用 Base64
+               const base64 = await fileToBase64(currentFile);
+               const startTime1 = Date.now();
+               const highDpiBase64 = await fileChangedImageDPI(base64, 300);
+               const time1 = Date.now() - startTime1;
+               
+               // 方式 2: 直接使用 Blob
+               const startTime2 = Date.now();
+               const highDpiBlob = await fileChangedImageDPI(currentFile, 300);
+               const time2 = Date.now() - startTime2;
+               
+               document.getElementById('convertResult').innerHTML = `
+                   <h4>修改图片 DPI (300)：</h4>
+                   <div style="margin: 15px 0;">
+                       <strong>方式 1 - Base64 处理：</strong><br>
+                       <p>✓ 处理成功，耗时：${time1}ms</p>
+                       <p>结果长度：${highDpiBase64.length} 字符</p>
+                       <pre>${highDpiBase64.substring(0, 100)}...</pre>
+                   </div>
+                   <div style="margin: 15px 0;">
+                       <strong>方式 2 - Blob 直接处理：</strong><br>
+                       <p>✓ 处理成功，耗时：${time2}ms</p>
+                       <p>Blob 类型：${highDpiBlob.type}</p>
+                       <p>Blob 大小：${highDpiBlob.size} 字节</p>
+                   </div>
+                   <p style="color: #667eea;">
+                       💡 提示：两种方式都可以修改 DPI，Blob 方式性能更优<br>
+                       DPI 值越高，打印质量越好，但文件体积可能增大
+                   </p>
+               `;
+           } catch (error) {
+               document.getElementById('convertResult').innerHTML = `
+                   <p class="error">✗ 修改 DPI 失败：${error.message}</p>
+               `;
+           }
        };
        
        // ========== 文件下载测试 ==========

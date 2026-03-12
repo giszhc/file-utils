@@ -30,6 +30,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "changedpi": "^1.0.4",
     "jszip": "^3.10.1"
   },
   "devDependencies": {

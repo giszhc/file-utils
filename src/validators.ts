@@ -2,7 +2,7 @@
  * 文件验证相关方法
  */
 
-import { getFileExtension } from './utils';
+import { getFileNameSuffix } from './utils';
 
 /**
  * 检查文件类型是否匹配
@@ -32,7 +32,7 @@ export function checkFileType(file: File, acceptTypes: string[]): boolean {
     }
     
     const fileType = file.type.toLowerCase();
-    const fileExtension = getFileExtension(file).toLowerCase();
+    const fileExtension = `.${getFileNameSuffix(file).toLowerCase()}`;
     
     return acceptTypes.some(type => {
         const normalizedType = type.toLowerCase();
@@ -99,7 +99,7 @@ export function isImage(file: File): boolean {
     
     // 通过扩展名判断（防止 MIME 类型不准确）
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico'];
-    const extension = getFileExtension(file);
+    const extension = `.${getFileNameSuffix(file)}`;
     
     return imageExtensions.includes(extension);
 }

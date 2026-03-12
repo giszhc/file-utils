@@ -5,19 +5,19 @@
 import type { IFileInfo } from './types';
 
 /**
- * 获取文件扩展名（后缀）
+ * 获取文件扩展名（后缀，不含点号）
  *
  * @param file - File 对象或文件名
- * @returns string - 文件扩展名（包含点号，如 '.jpg'）
+ * @returns string - 文件扩展名（不含点号，如 'jpg'）
  *
  * @example
  * const file = new File(['content'], 'test.txt', { type: 'text/plain' });
- * const ext = getFileExtension(file); // ".txt"
+ * const ext = getFileNameSuffix(file); // "txt"
  *
  * @example
- * const ext = getFileExtension('image.png'); // ".png"
+ * const ext = getFileNameSuffix('image.png'); // "png"
  */
-export function getFileExtension(file: File | string): string {
+export function getFileNameSuffix(file: File | string): string {
     const filename = typeof file === 'string' ? file : file.name;
     const lastDotIndex = filename.lastIndexOf('.');
     
@@ -25,23 +25,23 @@ export function getFileExtension(file: File | string): string {
         return '';
     }
     
-    return filename.slice(lastDotIndex).toLowerCase();
+    return filename.slice(lastDotIndex + 1).toLowerCase();
 }
 
 /**
- * 获取文件名（不含扩展名）
+ * 获取文件名（前缀，不含扩展名）
  *
  * @param file - File 对象或文件名
  * @returns string - 不含扩展名的文件名
  *
  * @example
  * const file = new File(['content'], 'test.txt', { type: 'text/plain' });
- * const name = getFileNameWithoutExtension(file); // "test"
+ * const name = getFileNamePrefix(file); // "test"
  *
  * @example
- * const name = getFileNameWithoutExtension('archive.tar.gz'); // "archive.tar"
+ * const name = getFileNamePrefix('archive.tar.gz'); // "archive.tar"
  */
-export function getFileNameWithoutExtension(file: File | string): string {
+export function getFileNamePrefix(file: File | string): string {
     const filename = typeof file === 'string' ? file : file.name;
     const lastDotIndex = filename.lastIndexOf('.');
     
