@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>file-utils - 文件操作工具</title>
+    <style>
+        * {
+            margin: 0;
+          padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+            height: 100vh;
+     padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        /* 主窗口 - MacOS 风格 */
+        .window {
+            width: calc(100% - 40px);
+            max-width: 1400px;
+     background: rgba(255, 255, 255, 0.85);
+     backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 12px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.25),
+                0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: windowOpen 0.3s ease-out;
+            margin: 20px auto;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes windowOpen {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        /* 标题栏 */
+        .title-bar {
+     background: linear-gradient(to bottom, #f6f6f6, #e8e8e8);
+            border-bottom: 1px solid #d0d0d0;
+     padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .traffic-lights {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .traffic-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .traffic-light.close {
+     background: #ff5f57;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .traffic-light.close:hover {
+            opacity: 0.7;
+        }
+        
+        .traffic-light.minimize {
+     background: #febc2e;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .traffic-light.minimize:hover {
+            opacity: 0.7;
+        }
+        
+        .traffic-light.maximize {
+     background: #28c840;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .traffic-light.maximize:hover {
+            opacity: 0.7;
+        }
+        
+        .window-title {
+            flex: 1;
+            text-align: center;
+     color: #333;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        
+        .content {
+    padding: 30px;
+           flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .content::-webkit-scrollbar-track {
+         background: transparent;
+        }
+        
+        .content::-webkit-scrollbar-thumb {
+         background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        .content::-webkit-scrollbar-thumb:hover {
+         background: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+         background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+         background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+         color: #666;
+            font-size: 15px;
+        }
+        
+        /* 信息提示框 */
+        .info-box {
+         background: rgba(102, 126, 234, 0.08);
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+         padding: 16px 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-box strong {
+         color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .info-box p {
+         color: #555;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        
+        /* 功能区块 */
+        .section {
+         background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+         padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+        
+        .section:hover {
+         background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section h2 {
+            font-size: 18px;
+            font-weight: 600;
+         color: #333;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-icon {
+            font-size: 20px;
+        }
+        
+        /* 按钮组 */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        button {
+         background: linear-gradient(135deg, #667eea, #764ba2);
+         color: white;
+            border: none;
+         padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+         content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+        }
+        
+        /* 文件输入 */
+        .file-input-wrapper {
+            position: relative;
+            margin: 15px 0;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+         padding: 14px 18px;
+         background: rgba(255, 255, 255, 0.9);
+            border: 2px dashed rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+         color: #555;
+        }
+        
+        input[type="file"]:hover {
+            border-color: rgba(102, 126, 234, 0.7);
+         background: rgba(102, 126, 234, 0.05);
+        }
+        
+        /* 结果区域 */
+        .result {
+         background: rgba(250, 250, 250, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 8px;
+         padding: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+        
+        .result h4 {
+         color: #667eea;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .result pre {
+         background: rgba(255, 255, 255, 0.7);
+         padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            line-height: 1.6;
+        }
+        
+        .success {
+         color: #34c759;
+            font-weight: 600;
+        }
+        
+        .error {
+         color: #ff3b30;
+            font-weight: 600;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .window {
+                width: calc(100% - 20px);
+                margin: 10px auto;
+            }
+            
+            .content {
+             padding: 20px 15px;
+            }
+            
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+  <script type="module" crossorigin src="./assets/main-daCUVRew.js"></script>
+</head>
+<body>
+    <div class="window">
+        <!-- MacOS 风格标题栏 -->
+        <div class="title-bar">
+            <div class="traffic-lights">
+                <div class="traffic-light close"></div>
+                <div class="traffic-light minimize"></div>
+                <div class="traffic-light maximize"></div>
+            </div>
+            <div class="window-title">file-utils</div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content">
+            <div class="header">
+                <h1>📁 file-utils</h1>
+                <p class="subtitle">功能完整的文件操作工具库</p>
+            </div>
+            
+            <div class="info-box">
+                <strong>💡 使用指南</strong>
+                <p>选择一个文件开始测试，点击各个功能按钮查看效果，所有测试结果将显示在下方。</p>
+            </div>
+            
+            <!-- 文件选择 -->
+            <div class="section">
+                <h2><span class="section-icon">📂</span> 选择文件</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" multiple>
+                </div>
+                <div class="result" id="fileInfo"></div>
+            </div>
+            
+            <!-- 文件读取 -->
+            <div class="section">
+                <h2><span class="section-icon">📖</span> 文件读取</h2>
+                <div class="button-group">
+                    <button onclick="testReadTxt()">读取 TXT</button>
+                    <button onclick="testReadCsv()">读取 CSV</button>
+                    <button onclick="testReadJson()">读取 JSON</button>
+                    <button onclick="testReadAsBase64()">读取为 Base64</button>
+                </div>
+                <div class="result" id="readResult"></div>
+            </div>
+            
+            <!-- 文件验证 -->
+            <div class="section">
+                <h2><span class="section-icon">✅</span> 文件验证</h2>
+                <div class="button-group">
+                    <button onclick="testCheckFileType()">检查类型</button>
+                    <button onclick="testCheckFileSize()">检查大小</button>
+                    <button onclick="testIsImage()">是否图片</button>
+                    <button onclick="testGetImageDimensions()">获取尺寸</button>
+                    <button onclick="testValidateFile()">综合验证</button>
+                </div>
+                <div class="result" id="validateResult"></div>
+            </div>
+            
+            <!-- 文件信息 -->
+            <div class="section">
+                <h2><span class="section-icon">ℹ️</span> 文件信息</h2>
+                <div class="button-group">
+                    <button onclick="testGetFileExtension()">扩展名</button>
+                    <button onclick="testGetFileName()">文件名</button>
+                    <button onclick="testGetFileInfo()">完整信息</button>
+                    <button onclick="testFormatFileSize()">格式化大小</button>
+                </div>
+                <div class="result" id="infoResult"></div>
+            </div>
+            
+            <!-- 文件生成 -->
+            <div class="section">
+                <h2><span class="section-icon">📝</span> 文件生成</h2>
+                <div class="button-group">
+                    <button onclick="testGenerateTxt()">生成 TXT</button>
+                    <button onclick="testGenerateTxtNoDownload()">生成 TXT (无下载)</button>
+                    <button onclick="testGenerateCsv()">生成 CSV</button>
+                    <button onclick="testGenerateCsvNoDownload()">生成 CSV (无下载)</button>
+                    <button onclick="testGenerateJson()">生成 JSON</button>
+                    <button onclick="testGenerateJsonNoDownload()">生成 JSON (无下载)</button>
+                </div>
+                <div class="result" id="generateResult"></div>
+            </div>
+            
+            <!-- 文件转换 -->
+            <div class="section">
+                <h2><span class="section-icon">🔄</span> 文件转换</h2>
+                <div class="button-group">
+                    <button onclick="testFileToBase64()">File → Base64</button>
+                    <button onclick="testBase64ToFile()">Base64 → Blob</button>
+                    <button onclick="testFileChangedImageDPI()">修改图片 DPI</button>
+                </div>
+                <div class="result" id="convertResult"></div>
+            </div>
+            
+            <!-- 文件下载 -->
+            <div class="section">
+                <h2><span class="section-icon">⬇️</span> 文件下载</h2>
+                <div class="button-group">
+                    <button onclick="testDownloadFromUrl()">URL 下载</button>
+                    <button onclick="testDownloadBlob()">Blob 下载</button>
+                    <button onclick="testDownloadBase64()">Base64 下载</button>
+                </div>
+                <div class="result" id="downloadResult"></div>
+            </div>
+            
+            <!-- 文件压缩 -->
+            <div class="section">
+                <h2><span class="section-icon">📦</span> 文件压缩</h2>
+                <div class="button-group">
+                    <button onclick="testFileListToZip()">文件列表转 ZIP</button>
+                    <button onclick="testDownloadFileListAsZip()">下载 ZIP 压缩包</button>
+                </div>
+                <div class="result" id="compressResult"></div>
+            </div>
+            
+            <!-- 剪贴板操作 -->
+            <div class="section">
+                <h2><span class="section-icon">📋</span> 剪贴板</h2>
+                <div class="button-group">
+                    <button onclick="testCopyText()">复制文本</button>
+                    <button onclick="testCopyWithCallback()">复制 (回调)</button>
+                    <button onclick="testPasteFromClipboard()">从剪贴板读取</button>
+                </div>
+                <div class="result" id="clipboardResult"></div>
+            </div>
+            
+            <!-- 辅助工具 -->
+            <div class="section">
+                <h2><span class="section-icon">🛠️</span> 辅助工具</h2>
+                <div class="button-group">
+                    <button onclick="testDeepClone()">深拷贝</button>
+                    <button onclick="testNumberFixed()">数字格式化</button>
+                    <button onclick="testParseUrlParams()">解析 URL</button>
+                    <button onclick="testObjectToFormData()">对象转 FormData</button>
+                    <button onclick="testOmitKeys()">移除键</button>
+                    <button onclick="testGenerateUUID()">生成 UUID</button>
+                    <button onclick="testArraySum()">数组求和</button>
+                    <button onclick="testFormatAmount()">金额格式化</button>
+                    <button onclick="testMaskString()">星号替换</button>
+                    <button onclick="testFormatPhone()">手机号脱敏</button>
+                    <button onclick="testVerifyUtils()">正则验证</button>
+                </div>
+                <div class="result" id="helpersResult"></div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

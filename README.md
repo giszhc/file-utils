@@ -19,6 +19,23 @@
 
 ------
 
+## 在线示例
+
+我们提供了一个功能完整的在线演示页面，您可以直接在浏览器中体验所有功能：
+
+**🌐 立即体验：** [点击访问在线演示](https://giszhc.github.io/file-utils/)
+
+------
+
+## 安装
+
+你可以通过 npm 安装该库：
+
+```bash
+pnpm install @giszhc/file-utils
+```
+
+------
 ## 方法列表
 
 ### 文件读取
@@ -97,16 +114,6 @@
 - `VerifyUtils.isEmpty` - 空值检查
 - `VerifyUtils.getRule` - 生成表单验证规则
 - `VerifyUtils.validate` - 带错误消息的验证
-
-------
-
-## 安装
-
-你可以通过 npm 安装该库：
-
-```bash
-pnpm install @giszhc/file-utils
-```
 
 ------
 

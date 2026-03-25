@@ -1,6 +1,6 @@
 {
   "name": "@giszhc/file-utils",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "files": [
     "dist",
@@ -26,7 +26,8 @@
   "scripts": {
     "dev": "vite",
     "build:types": "tsc -p tsconfig.build.json",
-    "build": "pnpm run build:types && vite build",
+    "build": "vite build && pnpm run build:types",
+    "build:example": "vite build --config vite.example.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
