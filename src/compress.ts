@@ -2,7 +2,8 @@
  * 文件压缩相关方法
  */
 
-import JSZip from 'jszip';
+import type { Zippable, ZipOptions } from 'fflate';
+import { zip } from 'fflate';
 import { blobToFile } from './convert';
 import { downloadBlob } from './download';
 
@@ -20,16 +21,42 @@ import { downloadBlob } from './download';
  */
 export const fileListToZip = function (fileList: File[], filename: string): Promise<File> {
     return new Promise((resolve, reject) => {
-        const zip = new JSZip();
+        // 构建 fflate 需要的文件对象结构
+        const filesForZip: Zippable = {};
         
-        fileList.forEach((file) => {
-            zip.file(file.name, file);
+        // 并行读取所有文件
+        const readPromises = fileList.map((file) => {
+            return new Promise<void>((resolveFile, rejectFile) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    if (reader.result) {
+                        filesForZip[file.name] = new Uint8Array(reader.result as ArrayBuffer);
+                        resolveFile();
+                    } else {
+                        rejectFile(new Error(`Failed to read file: ${file.name}`));
+                    }
+                };
+                reader.onerror = () => rejectFile(new Error(`Error reading file: ${file.name}`));
+                reader.readAsArrayBuffer(file);
+            });
         });
         
-        zip.generateAsync({ type: "blob" }).then((blob) => {
-            const zipFile = blobToFile(blob, `${filename}.zip`);
-            resolve(zipFile);
-        }, reject);
+        // 所有文件读取完成后进行压缩
+        Promise.all(readPromises)
+            .then(() => {
+                const options: ZipOptions = { level: 6 };
+                zip(filesForZip, options, (err, data) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    // @ts-ignore
+                    const blob = new Blob([data], { type: 'application/zip' });
+                    const zipFile = blobToFile(blob, `${filename}.zip`);
+                    resolve(zipFile);
+                });
+            })
+            .catch(reject);
     });
 };
 
